@@ -368,6 +368,168 @@ wwd_result_t host_platform_bus_deinit( void )
     platform_mcu_powersave_enable( );
     return result;
 }
+//#define SW	0	//官方写法
+////#define SW	1	//精简写法
+//wwd_result_t host_platform_sdio_transfer( wwd_bus_transfer_direction_t direction, sdio_command_t command, sdio_transfer_mode_t mode, sdio_block_size_t block_size, uint32_t argument, /*@null@*/uint32_t* data, uint16_t data_size, sdio_response_needed_t response_expected, /*@out@*//*@null@*/uint32_t* response )
+//{
+//    uint32_t loop_count = 0;
+//    wwd_result_t result = WWD_UNSUPPORTED;
+//    uint16_t attempts = 0;
+
+//    wiced_assert( "Bad args", !((command == SDIO_CMD_53) && (data == NULL)) );
+
+//    if ( response != NULL )
+//    {
+//        *response = 0;
+//    }
+
+//    platform_mcu_powersave_disable( );
+
+//    restart: SDMMC1->ICR = (uint32_t) 0xFFFFFFFF;
+//    sdio_transfer_failed = WICED_FALSE;
+//    ++attempts;
+
+//    /* Check if we've tried too many times */
+//    if ( attempts >= (uint16_t) BUS_LEVEL_MAX_RETRIES )
+//    {
+//        result = WWD_SDIO_RETRIES_EXCEEDED;
+//        goto exit;
+//    }
+
+//    /* Prepare the data transfer register */
+//    current_command = command;
+//    if ( command == SDIO_CMD_53 )
+//    {
+//        sdio_enable_bus_irq( );
+
+//        /* Dodgy STM32 hack to set the CMD53 byte mode size to be the same as the block size */
+//        if ( mode == SDIO_BYTE_MODE )
+//        {
+//            block_size = find_optimal_block_size( data_size );
+//            if ( block_size < SDIO_512B_BLOCK )
+//            {
+//                argument = ( argument & (uint32_t) ( ~0x1FF ) ) | block_size;
+//            }
+//            else
+//            {
+//                argument = ( argument & (uint32_t) ( ~0x1FF ) );
+//            }
+//        }
+
+//        /* 准备SDIO传输数据 */
+//        current_transfer_direction = direction;
+//        sdio_prepare_data_transfer( direction, block_size, (uint8_t*) data, data_size );
+
+//        /* 发送命令 */
+//        SDMMC1->ARG = argument;
+//        SDMMC1->CMD = (uint32_t) ( command | SDMMC_RESPONSE_SHORT | SDMMC_WAIT_NO | SDMMC_CPSM_ENABLE | SDMMC_CMD_CMDTRANS );
+
+//        /* 等待整个传输完成 */	//等待获取信号量
+//        result = host_rtos_get_semaphore( &sdio_transfer_finished_semaphore, (uint32_t) 50, WICED_TRUE );
+//#if SW
+//        if ( result != WWD_SUCCESS )
+//        {
+//            goto exit;
+//        }
+
+//        if ( sdio_transfer_failed == WICED_TRUE )
+//        {
+//            goto restart;
+//        }
+
+//        /* Check if there were any SDIO errors */
+//        if ( ( SDMMC1->STA & ( SDMMC_STA_DTIMEOUT | SDMMC_STA_CTIMEOUT ) ) != 0 )
+//        {
+//            goto restart;
+//        }
+//        else if ( ( ( SDMMC1->STA & ( SDMMC_STA_CCRCFAIL | SDMMC_STA_DCRCFAIL | SDMMC_STA_TXUNDERR | SDMMC_STA_RXOVERR ) ) != 0 ) )
+//        {
+//            wiced_assert( "SDIO communication failure", 0 );
+//            goto restart;
+//        }
+//#endif
+//        /* 等到完成 （loop_count一个等待的时间）*/
+//        loop_count = (uint32_t) SDIO_TX_RX_COMPLETE_TIMEOUT_LOOPS;
+
+//#if SW	//官方写法
+//        do
+//        {
+//            loop_count--;
+//            if ( loop_count == 0 || ( ( SDMMC1->STA & SDIO_ERROR_MASK ) != 0 ) )
+//            {
+
+//                goto restart;
+//            }
+//        } while ( ( SDMMC1->STA & ( SDMMC_STA_CPSMACT | SDMMC_STA_DPSMACT ) ) != 0 );
+//#else			
+//				while(1)
+//				{
+//							if ( loop_count == 0 || ( ( response_expected == RESPONSE_NEEDED ) && ( ( SDMMC1->STA & SDIO_ERROR_MASK ) != 0 ) ) )
+//							{
+//									goto restart;
+//							}
+//							loop_count--;					
+//							if(( SDMMC1->STA & ( SDMMC_STA_CPSMACT | SDMMC_STA_DPSMACT ) ) == 0 )
+//								{//等待条件成立，等待发送结束
+//									break;
+//							}
+//				}
+//#endif
+//        if ( direction == BUS_READ )
+//        {
+//            memcpy( user_data, dma_data_source, (size_t) user_data_size );
+//        }
+
+//    }
+//    /* ALl SDIO CMD other than CMD53 */
+//    else
+//    {
+//        uint32_t temp_sta;
+
+//        /* Send the command */
+//        SDMMC1->ARG = argument;
+//        SDMMC1->CMD = (uint32_t) ( command | SDMMC_RESPONSE_SHORT | SDMMC_WAIT_NO | SDMMC_CPSM_ENABLE );
+
+//        loop_count = (uint32_t) COMMAND_FINISHED_CMD52_TIMEOUT_LOOPS;
+
+//#if SW	//官方写法
+//        do
+//        {
+//            temp_sta = SDMMC1->STA;
+//            loop_count--;
+//            if ( loop_count == 0 || ( ( response_expected == RESPONSE_NEEDED ) && ( ( temp_sta & SDIO_ERROR_MASK ) != 0 ) ) )
+//            {
+//                goto restart;
+//            }
+//        } while ( ( temp_sta & ( SDMMC_STA_CPSMACT | SDMMC_STA_DPSMACT ) ) != 0 );
+//#else		
+//			while(1)
+//			{
+//						temp_sta = SDMMC1->STA;
+//					  if ( loop_count == 0 || ( ( response_expected == RESPONSE_NEEDED ) && ( ( temp_sta & SDIO_ERROR_MASK ) != 0 ) ) )
+//            {
+//                goto restart;
+//            }
+//						loop_count--;					
+//						if(( temp_sta & ( SDMMC_STA_CPSMACT | SDMMC_STA_DPSMACT ) ) == 0 )
+//							{//等待条件成立，等待发送结束
+//								break;
+//						}
+//			}
+//#endif
+//    }
+//		
+
+//    if ( response != NULL )
+//    {
+//        *response = SDMMC1->RESP1;
+//    }
+//    result = WWD_SUCCESS;
+//    SDMMC1->CMD = 0;
+
+//    exit: platform_mcu_powersave_enable( );
+//    return result;
+//}
 
 wwd_result_t host_platform_sdio_transfer( wwd_bus_transfer_direction_t direction, sdio_command_t command, sdio_transfer_mode_t mode, sdio_block_size_t block_size, uint32_t argument, /*@null@*/uint32_t* data, uint16_t data_size, sdio_response_needed_t response_expected, /*@out@*//*@null@*/uint32_t* response )
 {
@@ -395,7 +557,7 @@ wwd_result_t host_platform_sdio_transfer( wwd_bus_transfer_direction_t direction
         goto exit;
     }
 
-    /* Prepare the data transfer register */
+    /* 准备数据传输寄存器 */
     current_command = command;
     if ( command == SDIO_CMD_53 )
     {
@@ -415,48 +577,35 @@ wwd_result_t host_platform_sdio_transfer( wwd_bus_transfer_direction_t direction
             }
         }
 
-        /* Prepare the SDIO for a data transfer */
+        /* 准备SDIO传输数据 */
         current_transfer_direction = direction;
         sdio_prepare_data_transfer( direction, block_size, (uint8_t*) data, data_size );
 
-        /* Send the command */
+        /* 发送命令 */
         SDMMC1->ARG = argument;
         SDMMC1->CMD = (uint32_t) ( command | SDMMC_RESPONSE_SHORT | SDMMC_WAIT_NO | SDMMC_CPSM_ENABLE | SDMMC_CMD_CMDTRANS );
 
-        /* Wait for the whole transfer to complete */
+        /* 等待整个传输完成 */	//等待获取信号量
         result = host_rtos_get_semaphore( &sdio_transfer_finished_semaphore, (uint32_t) 50, WICED_TRUE );
-        if ( result != WWD_SUCCESS )
-        {
-            goto exit;
-        }
 
-        if ( sdio_transfer_failed == WICED_TRUE )
-        {
-            goto restart;
-        }
-
-        /* Check if there were any SDIO errors */
-        if ( ( SDMMC1->STA & ( SDMMC_STA_DTIMEOUT | SDMMC_STA_CTIMEOUT ) ) != 0 )
-        {
-            goto restart;
-        }
-        else if ( ( ( SDMMC1->STA & ( SDMMC_STA_CCRCFAIL | SDMMC_STA_DCRCFAIL | SDMMC_STA_TXUNDERR | SDMMC_STA_RXOVERR ) ) != 0 ) )
-        {
-            wiced_assert( "SDIO communication failure", 0 );
-            goto restart;
-        }
-
-        /* Wait till complete */
+        /* 等到完成 （loop_count一个等待的时间）*/
         loop_count = (uint32_t) SDIO_TX_RX_COMPLETE_TIMEOUT_LOOPS;
-        do
-        {
-            loop_count--;
-            if ( loop_count == 0 || ( ( SDMMC1->STA & SDIO_ERROR_MASK ) != 0 ) )
-            {
 
-                goto restart;
-            }
-        } while ( ( SDMMC1->STA & ( SDMMC_STA_CPSMACT | SDMMC_STA_DPSMACT ) ) != 0 );
+	
+				while(1)
+				{
+							if ( loop_count == 0 || ( ( response_expected == RESPONSE_NEEDED ) && ( ( SDMMC1->STA & SDIO_ERROR_MASK ) != 0 ) ) )
+							{
+									goto restart;
+							}
+							loop_count--;					
+							if(( SDMMC1->STA & ( SDMMC_STA_CPSMACT | SDMMC_STA_DPSMACT ) ) == 0 )
+								{//等待条件成立，等待发送结束
+									break;
+							}
+				}
+				
+				
 
         if ( direction == BUS_READ )
         {
@@ -469,21 +618,31 @@ wwd_result_t host_platform_sdio_transfer( wwd_bus_transfer_direction_t direction
     {
         uint32_t temp_sta;
 
-        /* Send the command */
+			/* 发送命令*/
         SDMMC1->ARG = argument;
         SDMMC1->CMD = (uint32_t) ( command | SDMMC_RESPONSE_SHORT | SDMMC_WAIT_NO | SDMMC_CPSM_ENABLE );
 
         loop_count = (uint32_t) COMMAND_FINISHED_CMD52_TIMEOUT_LOOPS;
-        do
-        {
-            temp_sta = SDMMC1->STA;
-            loop_count--;
-            if ( loop_count == 0 || ( ( response_expected == RESPONSE_NEEDED ) && ( ( temp_sta & SDIO_ERROR_MASK ) != 0 ) ) )
+
+		
+			while(1)
+			{
+						temp_sta = SDMMC1->STA;
+					  if ( loop_count == 0 || ( ( response_expected == RESPONSE_NEEDED ) && ( ( temp_sta & SDIO_ERROR_MASK ) != 0 ) ) )
             {
                 goto restart;
             }
-        } while ( ( temp_sta & ( SDMMC_STA_CPSMACT | SDMMC_STA_DPSMACT ) ) != 0 );
-    }
+						loop_count--;					
+						if(( temp_sta & ( SDMMC_STA_CPSMACT | SDMMC_STA_DPSMACT ) ) == 0 )
+							{//等待条件成立，等待发送结束
+								break;
+						}
+			}
+
+    
+		
+		}
+		
 
     if ( response != NULL )
     {
@@ -517,7 +676,8 @@ static void sdio_prepare_data_transfer( wwd_bus_transfer_direction_t direction, 
     SDMMC1->DCTRL     = (uint32_t) sdio_get_blocksize_dctrl( block_size ) | bus_direction_mapping[ (int) direction ] | SDMMC_TRANSFER_MODE_BLOCK | SDMMC_DPSM_DISABLE | SDMMC_DCTRL_SDIOEN;
 
     SDMMC1->IDMACTRL  = SDMMC_ENABLE_IDMA_SINGLE_BUFF;
-    SDMMC1->IDMABASE0 = (uint32_t) dma_data_source;
+		SDMMC1->IDMABASE0 = (uint32_t) dma_data_source;
+	
 }
 
 wwd_result_t host_platform_enable_high_speed_sdio( void )
