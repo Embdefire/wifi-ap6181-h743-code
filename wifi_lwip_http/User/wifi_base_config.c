@@ -3,7 +3,25 @@
 
 extern void netio_init(void);
 ip4_addr_t ipaddr, netmask, gw;
+char wiced_if_str[100];
+int wiced_if_str_len=0;
+/**
+ * @brief 打印地址信息
+ *
+ * @param temp_addr 临时地址变量
+ */
+//void log_sin_addr_info(struct sockaddr_in  temp_addr)
+void log_sin_addr_info()
+{
+#define LOG_SW  	//打印开关
+#if defined(LOG_SW)
 
+	char str_temp[100];
+	sprintf(str_temp,"%d.%d.%d.%d\n",192,168,0,1);
+	printf("addr->%s",str_temp);			
+	
+#endif 
+}
 /*
 配置wifi lwip信息
 */
@@ -65,7 +83,7 @@ void Config_WIFI_LwIP_Info()
     }
 
     WPRINT_APP_INFO( ( "Network ready IP: %s\n", ip4addr_ntoa(netif_ip4_addr(&wiced_if))));
-
+		wiced_if_str_len=sprintf(wiced_if_str,"%s",ip4addr_ntoa(netif_ip4_addr(&wiced_if)));
 #if 0
     WPRINT_APP_INFO( ( "Shutting down WICED\n" ) );
 

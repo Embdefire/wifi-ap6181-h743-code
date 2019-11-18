@@ -79,6 +79,8 @@ static void client(void *thread_param)
     while (1)
     {
       ret = netconn_write(conn,send_buf,sizeof(send_buf),0);
+			
+			PRINTF("netconn_write to server successful!\n");
    
       vTaskDelay(1000);
     }

@@ -360,10 +360,11 @@ void SD_LowLevel_Init(void)
     HAL_GPIO_Init(GPIOD, &GPIO_InitStruct);
     //启用WIFI模块
 
+
     /*使能引脚时钟*/	
-    __HAL_RCC_GPIOC_CLK_ENABLE();
+    __HAL_RCC_GPIOB_CLK_ENABLE();
     /*选择要控制的GPIO引脚*/															   
-    GPIO_InitStruct.Pin = GPIO_PIN_2;	
+    GPIO_InitStruct.Pin = GPIO_PIN_13;	
     /*设置引脚的输出类型为推挽输出*/
     GPIO_InitStruct.Mode  = GPIO_MODE_OUTPUT_PP;      
     /*设置引脚为上拉模式*/
@@ -371,14 +372,15 @@ void SD_LowLevel_Init(void)
     /*设置引脚速率为高速 */   
     GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH; 
     /*调用库函数，使用上面配置的GPIO_InitStructure初始化GPIO*/
-    HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);	
-    /*禁用WiFi模块*/
-    HAL_GPIO_WritePin(GPIOC,GPIO_PIN_2,GPIO_PIN_RESET);  
+    HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);	
+ 
+//    /*禁用WiFi模块*/
+    HAL_GPIO_WritePin(GPIOB,GPIO_PIN_13,GPIO_PIN_RESET);  
 		for(i=0;i<0xffff;i++)
 		{
 			__nop();
 		}
-		HAL_GPIO_WritePin(GPIOC,GPIO_PIN_2,GPIO_PIN_SET);  
+		HAL_GPIO_WritePin(GPIOB,GPIO_PIN_13,GPIO_PIN_SET);  
 
 }
 

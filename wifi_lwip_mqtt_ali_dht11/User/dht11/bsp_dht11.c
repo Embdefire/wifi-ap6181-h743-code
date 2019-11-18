@@ -8,14 +8,14 @@
   ******************************************************************************
   * @attention
   *
-  * 实验平台:野火  STM32H743 Pro开发板  
+  * 实验平台:野火  STM32H743  开发板  
   * 论坛    :http://www.firebbs.cn
   * 淘宝    :https://fire-stm32.taobao.com
   *
   ******************************************************************************
   */
 	
-#include "./dht11/bsp_dht11.h "
+#include "bsp_dht11.h "
 #include "./delay/core_delay.h" 
 /*
  * 函数名：DHT11_GPIO_Config
@@ -62,8 +62,7 @@ static void DHT11_Mode_IPU(void)
 
 	   /*设置引脚模式为浮空输入模式*/ 
 	  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;  
-    
-	   /* 设置引脚不上拉也不下拉 */
+  
 	  GPIO_InitStruct.Pull = GPIO_NOPULL;
   
   	 /*设置引脚速率为高速 */    

@@ -131,6 +131,7 @@ static void client(void *thread_param)
     
     memset(pSDRAM,0,BUF_LEN);
     closesocket(sock);
+		printf("sock close %d\n",sock);
     vTaskDelay(10000);
   }
 }
