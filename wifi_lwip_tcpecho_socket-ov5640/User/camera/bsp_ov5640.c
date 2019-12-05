@@ -40,7 +40,6 @@ ImageFormat_TypeDef ImageFormat;
 /* Private variables ---------------------------------------------------------*/
 
 unsigned short RGB565_Init[][2]=
-
 {
 
     //15fps VGA RGB565 output
@@ -496,7 +495,6 @@ unsigned short RGB565_Init[][2]=
 };
 
 unsigned short RGB565_QVGA[][2]=
-
 {
 
     // input clock 24Mhz, PCLK 45.6Mhz
@@ -606,7 +604,6 @@ unsigned short RGB565_QVGA[][2]=
 };
 
 unsigned short RGB565_VGA[][2]=
-
 {
 
     // input clock 24Mhz, PCLK 45.6Mhz
@@ -718,7 +715,6 @@ unsigned short RGB565_VGA[][2]=
 
 
 unsigned short RGB565_WVGA[][2]=
-
 {
 
     // 800x480 15fps, night mode 5fps
