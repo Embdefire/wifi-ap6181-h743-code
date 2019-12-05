@@ -18,9 +18,9 @@
 
 /* Includes ------------------------------------------------------------------*/
 #include "./camera/bsp_ov5640.h"
-#include "./camera/ov5640_reg.h"
 #include "./i2c/bsp_i2c.h"
 #include "./delay/core_delay.h"  
+#include "./camera/ov5640_reg.h"
 #include "cammera_middleware.h"
 
 DCMI_HandleTypeDef DCMI_Handle;
@@ -38,7 +38,6 @@ ImageFormat_TypeDef ImageFormat;
 
 /* Private macro -------------------------------------------------------------*/
 /* Private variables ---------------------------------------------------------*/
-
 
 unsigned short RGB565_Init[][2]=
 
@@ -936,102 +935,6 @@ void OV5640_Reset(void)
   OV5640_WriteReg(0x3008, 0x80);
 }
 
-/**
-  * @brief  读取摄像头的ID.
-  * @param  OV5640ID: 存储ID的结构体
-  * @retval None
-  */
-void OV5640_ReadID(OV5640_IDTypeDef *OV5640ID)
-{
-
-	/*读取寄存芯片ID*/
-  OV5640ID->PIDH = OV5640_ReadReg(OV5640_SENSOR_PIDH);
-  OV5640ID->PIDL = OV5640_ReadReg(OV5640_SENSOR_PIDL);
-}
-
-/**
-  * @brief  配置 DCMI/DMA 以捕获摄像头数据
-  * @param  None
-  * @retval None
-  */
-void OV5640_DCMI_Init(void) 
-{
-  /*** 配置DCMI接口 ***/
-  /* 使能DCMI时钟 */
-  __HAL_RCC_DCMI_CLK_ENABLE();
-
-  /* DCMI 配置*/
-  //DCMI外设寄存器基地址
-  DCMI_Handle.Instance              = DCMI;    
-  //连续采集模式  
-  DCMI_Handle.Init.SynchroMode      = DCMI_MODE_CONTINUOUS;
-  //连续采集模式  
-  DCMI_Handle.Init.SynchroMode      = DCMI_SYNCHRO_HARDWARE;
-  //像素时钟上升沿有效  
-  DCMI_Handle.Init.PCKPolarity      = DCMI_PCKPOLARITY_RISING;
-  //VSP高电平有效  
-  DCMI_Handle.Init.VSPolarity       = DCMI_VSPOLARITY_LOW;
-  //HSP低电平有效    
-  DCMI_Handle.Init.HSPolarity       = DCMI_HSPOLARITY_LOW;
-  //全采集  
-  DCMI_Handle.Init.CaptureRate      = DCMI_CR_ALL_FRAME;
-  //8位数据宽度  
-  DCMI_Handle.Init.ExtendedDataMode = DCMI_EXTEND_DATA_8B;
-  HAL_DCMI_Init(&DCMI_Handle); 	
-    
-	/* 配置中断 */
-  HAL_NVIC_SetPriority(DCMI_IRQn, 0, 5);
-  HAL_NVIC_EnableIRQ(DCMI_IRQn); 	
-
-}
-
-
-/**
-  * @brief  配置 DCMI/DMA 以捕获摄像头数据
-	* @param  DMA_Memory0BaseAddr:本次传输的目的首地址
-  * @param DMA_BufferSize：本次传输的数据量(单位为字,即4字节)
-  */
-void OV5640_DMA_Config(uint32_t DMA_Memory0BaseAddr,uint32_t DMA_BufferSize)
-{
-  /* 配置DMA从DCMI中获取数据*/
-  /* 使能DMA*/
-  __HAL_RCC_DMA2_CLK_ENABLE(); 
-  DMA_Handle_dcmi.Instance = DMA2_Stream1;
-  DMA_Handle_dcmi.Init.Request = DMA_REQUEST_DCMI; 
-  DMA_Handle_dcmi.Init.Direction = DMA_PERIPH_TO_MEMORY;
-  DMA_Handle_dcmi.Init.PeriphInc = DMA_PINC_DISABLE;
-  DMA_Handle_dcmi.Init.MemInc = DMA_MINC_ENABLE;    //寄存器地址自增
-  DMA_Handle_dcmi.Init.PeriphDataAlignment = DMA_PDATAALIGN_WORD;
-  DMA_Handle_dcmi.Init.MemDataAlignment = DMA_MDATAALIGN_WORD;
-  DMA_Handle_dcmi.Init.Mode = DMA_CIRCULAR;		    //循环模式
-  DMA_Handle_dcmi.Init.Priority = DMA_PRIORITY_HIGH;
-  DMA_Handle_dcmi.Init.FIFOMode = DMA_FIFOMODE_ENABLE;
-  DMA_Handle_dcmi.Init.FIFOThreshold = DMA_FIFO_THRESHOLD_FULL;
-  DMA_Handle_dcmi.Init.MemBurst = DMA_MBURST_INC4;
-  DMA_Handle_dcmi.Init.PeriphBurst = DMA_PBURST_SINGLE;
-
-  /*DMA中断配置 */
-  __HAL_LINKDMA(&DCMI_Handle, DMA_Handle, DMA_Handle_dcmi);
-  __HAL_DMA_ENABLE_IT(&DMA_Handle_dcmi,DMA_IT_TE); 
-
-	HAL_NVIC_SetPriority(DMA2_Stream1_IRQn, 10, 0);
-  HAL_NVIC_EnableIRQ(DMA2_Stream1_IRQn);
-  
-  HAL_DMA_Init(&DMA_Handle_dcmi);
-
-}
-
-
-unsigned short sensor_reg[(sizeof(RGB565_Init)/4)];
-/**
-  * @brief  Configures the OV5640 camera in BMP mode.
-  * @param  BMP ImageSize: BMP image size
-  * @retval None
-  */
-void OV5640_RGB565Config(void)
-{
- 
-}
 
 void OV5640_JPEGConfig(ImageFormat_TypeDef ImageFormat)
 {
@@ -1143,6 +1046,94 @@ void OV5640_JPEGConfig(ImageFormat_TypeDef ImageFormat)
 
 
 /**
+  * @brief  读取摄像头的ID.
+  * @param  OV5640ID: 存储ID的结构体
+  * @retval None
+  */
+void OV5640_ReadID(OV5640_IDTypeDef *OV5640ID)
+{
+
+	/*读取寄存芯片ID*/
+  OV5640ID->PIDH = OV5640_ReadReg(OV5640_SENSOR_PIDH);
+  OV5640ID->PIDL = OV5640_ReadReg(OV5640_SENSOR_PIDL);
+}
+
+/**
+  * @brief  配置 DCMI/DMA 以捕获摄像头数据
+  * @param  None
+  * @retval None
+  */
+void OV5640_DCMI_Init(void) 
+{
+  /*** 配置DCMI接口 ***/
+  /* 使能DCMI时钟 */
+  __HAL_RCC_DCMI_CLK_ENABLE();
+
+  /* DCMI 配置*/
+  //DCMI外设寄存器基地址
+  DCMI_Handle.Instance              = DCMI;    
+  //连续采集模式  
+  DCMI_Handle.Init.SynchroMode      = DCMI_MODE_CONTINUOUS;
+  //连续采集模式  
+  DCMI_Handle.Init.SynchroMode      = DCMI_SYNCHRO_HARDWARE;
+  //像素时钟上升沿有效  
+  DCMI_Handle.Init.PCKPolarity      = DCMI_PCKPOLARITY_RISING;
+  //VSP高电平有效  
+  DCMI_Handle.Init.VSPolarity       = DCMI_VSPOLARITY_LOW;
+  //HSP低电平有效    
+  DCMI_Handle.Init.HSPolarity       = DCMI_HSPOLARITY_LOW;
+  //全采集  
+  DCMI_Handle.Init.CaptureRate      = DCMI_CR_ALL_FRAME;
+  //8位数据宽度  
+  DCMI_Handle.Init.ExtendedDataMode = DCMI_EXTEND_DATA_8B;
+  HAL_DCMI_Init(&DCMI_Handle); 	
+    
+	/* 配置中断 */
+  HAL_NVIC_SetPriority(DCMI_IRQn, 5, 0);
+  HAL_NVIC_EnableIRQ(DCMI_IRQn); 	
+
+}
+
+
+/**
+  * @brief  配置 DCMI/DMA 以捕获摄像头数据
+	* @param  DMA_Memory0BaseAddr:本次传输的目的首地址
+  * @param DMA_BufferSize：本次传输的数据量(单位为字,即4字节)
+  */
+void OV5640_DMA_Config(uint32_t DMA_Memory0BaseAddr,uint32_t DMA_BufferSize)
+{
+  /* 配置DMA从DCMI中获取数据*/
+  /* 使能DMA*/
+  __HAL_RCC_DMA2_CLK_ENABLE(); 
+  DMA_Handle_dcmi.Instance = DMA2_Stream1;
+  DMA_Handle_dcmi.Init.Request = DMA_REQUEST_DCMI; 
+  DMA_Handle_dcmi.Init.Direction = DMA_PERIPH_TO_MEMORY;
+  DMA_Handle_dcmi.Init.PeriphInc = DMA_PINC_DISABLE;
+  DMA_Handle_dcmi.Init.MemInc = DMA_MINC_ENABLE;    //寄存器地址自增
+  DMA_Handle_dcmi.Init.PeriphDataAlignment = DMA_PDATAALIGN_WORD;
+  DMA_Handle_dcmi.Init.MemDataAlignment = DMA_MDATAALIGN_WORD;
+  DMA_Handle_dcmi.Init.Mode = DMA_CIRCULAR;		    //循环模式
+  DMA_Handle_dcmi.Init.Priority = DMA_PRIORITY_HIGH;
+  DMA_Handle_dcmi.Init.FIFOMode = DMA_FIFOMODE_ENABLE;
+  DMA_Handle_dcmi.Init.FIFOThreshold = DMA_FIFO_THRESHOLD_FULL;
+  DMA_Handle_dcmi.Init.MemBurst = DMA_MBURST_INC4;
+  DMA_Handle_dcmi.Init.PeriphBurst = DMA_PBURST_SINGLE;
+
+  /*DMA中断配置 */
+  __HAL_LINKDMA(&DCMI_Handle, DMA_Handle, DMA_Handle_dcmi);
+  __HAL_DMA_ENABLE_IT(&DMA_Handle_dcmi,DMA_IT_TE); 
+
+	HAL_NVIC_SetPriority(DMA2_Stream1_IRQn, 10, 0);
+  HAL_NVIC_EnableIRQ(DMA2_Stream1_IRQn);
+  
+  HAL_DMA_Init(&DMA_Handle_dcmi);
+}
+
+
+unsigned short sensor_reg[(sizeof(RGB565_Init)/4)];
+
+
+/**
   * @brief  帧同步回调函数.
   * @param  None
   * @retval None
@@ -1164,6 +1155,11 @@ void HAL_DCMI_VsyncEventCallback(DCMI_HandleTypeDef *hdcmi)
 		//重新使能帧中断
 		__HAL_DCMI_ENABLE_IT(&DCMI_Handle,DCMI_FLAG_VSYNCRI);
 }
+
+uint8_t fps=0;
+uint8_t dispBuf[100];
+/*简单任务管理*/
+uint32_t Task_Delay[3]={0};
 
 
 int32_t open_camera(uint32_t *BufferSRC, uint32_t BufferSize)

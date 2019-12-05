@@ -9,7 +9,8 @@ camera_data  cam_data[CAMERA_QUEUE_NUM];
 CircularBuffer cam_circular_buff;
 
 //队列缓冲区的内存池0xD0000000
-__attribute__((at(0xD0000000)))__align(4) uint8_t queue_buff[CAMERA_QUEUE_NUM][CAMERA_QUEUE_DATA_LEN];
+//__attribute__((at(0xD0000000)))__align(4) uint8_t queue_buff[CAMERA_QUEUE_NUM][CAMERA_QUEUE_DATA_LEN];
+__align(4) uint8_t queue_buff[CAMERA_QUEUE_NUM][CAMERA_QUEUE_DATA_LEN];
 
 
 int32_t find_jpeg_tail(uint8_t *data,uint8_t *jpeg_start,int32_t search_point) ;

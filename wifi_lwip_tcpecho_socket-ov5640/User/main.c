@@ -185,7 +185,7 @@ static void BSP_Init(void)
 	/* CmBacktrace initialize */
   cm_backtrace_init("Fire_H7", HARDWARE_VERSION, SOFTWARE_VERSION);
 	
-	SDRAM_Init();//初始化外部sdram
+	//SDRAM_Init();//初始化外部sdram
 
 
   
