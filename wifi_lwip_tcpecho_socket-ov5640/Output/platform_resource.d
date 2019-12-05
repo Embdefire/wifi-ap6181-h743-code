@@ -1,9 +1,0 @@
-..\..\output\platform_resource.o: ..\..\..\WiFi_SDK\WICED\platform\MCU\platform_resource.c
-..\..\output\platform_resource.o: E:\Keil_v5\ARM\ARMCC\Bin\..\include\stdio.h
-..\..\output\platform_resource.o: E:\Keil_v5\ARM\ARMCC\Bin\..\include\string.h
-..\..\output\platform_resource.o: ..\..\..\WiFi_SDk\include\wiced_resource.h
-..\..\output\platform_resource.o: E:\Keil_v5\ARM\ARMCC\Bin\..\include\stdint.h
-..\..\output\platform_resource.o: ..\..\..\WiFi_SDk\WICED\platform\MCU\STM32H7xx\platform_config.h
-..\..\output\platform_resource.o: ..\..\..\WiFi_SDk\WICED\platform\include\platform_resource.h
-..\..\output\platform_resource.o: ..\..\User\platform_toolchain.h
-..\..\output\platform_resource.o: E:\Keil_v5\ARM\ARMCC\Bin\..\include\stddef.h
