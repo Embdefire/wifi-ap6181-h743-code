@@ -21,6 +21,8 @@
 #include "./camera/ov5640_reg.h"
 #include "./i2c/bsp_i2c.h"
 #include "./delay/core_delay.h"  
+#include "cammera_middleware.h"
+
 DCMI_HandleTypeDef DCMI_Handle;
 DMA_HandleTypeDef DMA_Handle_dcmi;
 /** @addtogroup DCMI_Camera
@@ -952,7 +954,7 @@ void OV5640_ReadID(OV5640_IDTypeDef *OV5640ID)
   * @param  None
   * @retval None
   */
-void OV5640_Init(void) 
+void OV5640_DCMI_Init(void) 
 {
   /*** 配置DCMI接口 ***/
   /* 使能DCMI时钟 */
@@ -980,8 +982,7 @@ void OV5640_Init(void)
 	/* 配置中断 */
   HAL_NVIC_SetPriority(DCMI_IRQn, 0, 5);
   HAL_NVIC_EnableIRQ(DCMI_IRQn); 	
-  //dma_memory 以16位数据为单位， dma_bufsize以32位数据为单位(即像素个数/2)
-  OV5640_DMA_Config(LCD_FB_START_ADDRESS,LCD_GetXSize()*LCD_GetYSize()/2);	
+
 }
 
 
@@ -1011,14 +1012,12 @@ void OV5640_DMA_Config(uint32_t DMA_Memory0BaseAddr,uint32_t DMA_BufferSize)
 
   /*DMA中断配置 */
   __HAL_LINKDMA(&DCMI_Handle, DMA_Handle, DMA_Handle_dcmi);
-  
-  HAL_NVIC_SetPriority(DMA2_Stream1_IRQn, 0, 0);
+  __HAL_DMA_ENABLE_IT(&DMA_Handle_dcmi,DMA_IT_TE); 
+
+	HAL_NVIC_SetPriority(DMA2_Stream1_IRQn, 10, 0);
   HAL_NVIC_EnableIRQ(DMA2_Stream1_IRQn);
   
   HAL_DMA_Init(&DMA_Handle_dcmi);
-  
-  //使能DCMI采集数据
-  HAL_DCMI_Start_DMA(&DCMI_Handle, DCMI_MODE_CONTINUOUS, (uint32_t)DMA_Memory0BaseAddr,DMA_BufferSize);
 
 }
 
@@ -1144,13 +1143,66 @@ void OV5640_JPEGConfig(ImageFormat_TypeDef ImageFormat)
 
 
 /**
-  * @brief  Line event callback.
+  * @brief  帧同步回调函数.
   * @param  None
   * @retval None
   */
+extern DMA_HandleTypeDef DMA_Handle_dcmi;
+
+void HAL_DCMI_FrameEventCallback(DCMI_HandleTypeDef *hdcmi)
+{
+	DCMI_IRQHandler_Funtion();
+
+   //重新使能帧中断
+  __HAL_DCMI_ENABLE_IT(&DCMI_Handle,DCMI_IT_FRAME);
+}
+
 void HAL_DCMI_VsyncEventCallback(DCMI_HandleTypeDef *hdcmi)
 {
+		DCMI_IRQHandler_Funtion();
 
-    OV5640_DMA_Config(LCD_FB_START_ADDRESS,LCD_GetXSize()*LCD_GetYSize()/2);
+		//重新使能帧中断
+		__HAL_DCMI_ENABLE_IT(&DCMI_Handle,DCMI_FLAG_VSYNCRI);
 }
+
+
+int32_t open_camera(uint32_t *BufferSRC, uint32_t BufferSize)
+{
+		OV5640_IDTypeDef OV5640_Camera_ID;	
+
+		/*5640 IO 初始化*/
+		I2CMaster_Init(); 
+		OV5640_HW_Init();
+		/*DCMI 初始化*/
+		OV5640_DCMI_Init();
+		/*DMA 初始化*/
+		OV5640_DMA_Config((uint32_t)BufferSRC, BufferSize);
+		/*dcmi 开始 DMA传输 */  //使能DCMI采集数据
+		HAL_DCMI_Start_DMA(&DCMI_Handle, DCMI_MODE_CONTINUOUS,(uint32_t)BufferSRC, BufferSize);
+
+		__HAL_DCMI_DISABLE_IT(&DCMI_Handle,DCMI_IT_LINE|DCMI_IT_FRAME|DCMI_IT_ERR|DCMI_IT_OVR);
+		__HAL_DCMI_ENABLE_IT(&DCMI_Handle,DCMI_IT_VSYNC);      //使能帧中断
+		__HAL_DCMI_ENABLE(&DCMI_Handle);                       //使能DCMI
+	
+		
+		/* 读取摄像头芯片ID，确定摄像头正常连接 */
+		OV5640_ReadID(&OV5640_Camera_ID);
+
+		if(OV5640_Camera_ID.PIDH  == 0x56)
+		{
+			printf("%x%x\r\n",OV5640_Camera_ID.PIDH ,OV5640_Camera_ID.PIDL);
+		}
+		else
+		{
+			printf("没有检测到OV5640摄像头，请重新检查连接。\r\n");
+			while(1);  
+		}
+			/* 配置摄像头输出像素格式 */
+		OV5640_JPEGConfig(JPEG_IMAGE_FORMAT);
+		printf(" OV5640_JPEGConfig ok !!! \r\n");
+}
+
+
+
+
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/

@@ -38,53 +38,53 @@ void BSP_Init();
 
 
 
-int main(void)
+//int main(void)
 
-{  
-	OV5640_IDTypeDef OV5640_Camera_ID;	
-	/* 系统时钟初始化成400MHz */
-	SystemClock_Config();
+//{  
+//	OV5640_IDTypeDef OV5640_Camera_ID;	
+//	/* 系统时钟初始化成400MHz */
+//	SystemClock_Config();
 
 
-	/* 配置串口1为：115200 8-N-1 */
-  DEBUG_USART_Config();
+//	/* 配置串口1为：115200 8-N-1 */
+//  DEBUG_USART_Config();
 
-	CAMERA_DEBUG("STM32H743 DCMI 驱动OV5640例程");
-	I2CMaster_Init();
-	OV5640_HW_Init();			
-	//初始化 I2C
-	
-	/* 读取摄像头芯片ID，确定摄像头正常连接 */
-	OV5640_ReadID(&OV5640_Camera_ID);
+//	CAMERA_DEBUG("STM32H743 DCMI 驱动OV5640例程");
+//	I2CMaster_Init();
+//	OV5640_HW_Init();			
+//	//初始化 I2C
+//	
+//	/* 读取摄像头芯片ID，确定摄像头正常连接 */
+//	OV5640_ReadID(&OV5640_Camera_ID);
 
-	if(OV5640_Camera_ID.PIDH  == 0x56)
-	{
-		CAMERA_DEBUG("%x%x",OV5640_Camera_ID.PIDH ,OV5640_Camera_ID.PIDL);
-	}
-	else
-	{
-		CAMERA_DEBUG("没有检测到OV5640摄像头，请重新检查连接。");
-		while(1);  
-	}
-		/* 配置摄像头输出像素格式 */
-	//OV5640_RGB565Config();	
-	OV5640_JPEGConfig(JPEG_IMAGE_FORMAT);
-	/* 初始化摄像头，捕获并显示图像 */
-	OV5640_Init();
-	//刷OV5640的自动对焦固件
-	OV5640_AUTO_FOCUS();
+//	if(OV5640_Camera_ID.PIDH  == 0x56)
+//	{
+//		CAMERA_DEBUG("%x%x",OV5640_Camera_ID.PIDH ,OV5640_Camera_ID.PIDL);
+//	}
+//	else
+//	{
+//		CAMERA_DEBUG("没有检测到OV5640摄像头，请重新检查连接。");
+//		while(1);  
+//	}
+//		/* 配置摄像头输出像素格式 */
+//	//OV5640_RGB565Config();	
+//	OV5640_JPEGConfig(JPEG_IMAGE_FORMAT);
+//	/* 初始化摄像头，捕获并显示图像 */
+//	OV5640_Init();
+//	//刷OV5640的自动对焦固件
+//	OV5640_AUTO_FOCUS();
 
-	while(1)
-	{
+//	while(1)
+//	{
 
-	}  
-}
+//	}  
+//}
 
 /**
  * 主函数
  */
 
-int main1( void )
+int main( void )
 {
 	
 		BSP_Init();

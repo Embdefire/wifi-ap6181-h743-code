@@ -40,7 +40,7 @@ void app_main( void )//0xD0000000
 	
 		cambuf = cbWrite(&cam_circular_buff);
 	
-//		err = open_camera((uint32_t *)cambuf->head, CAMERA_QUEUE_DATA_LEN);
+		err = open_camera((uint32_t *)cambuf->head, CAMERA_QUEUE_DATA_LEN);
 //	
 	
 			/*≈‰÷√wifi lwip–≈œ¢*/
